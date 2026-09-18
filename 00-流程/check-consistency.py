@@ -129,6 +129,49 @@ def check_layer(path):
         (bad if token in s else ok)(f"残留检查「{token}」" + (f" —— {why}" if token in s else "：无残留"))
 
 
+
+def _norm(t):
+    return re.sub(r"[*`\s]", "", t)
+
+
+def check_cross_file():
+    """跨文件【内容】一致性：不只查引用存在，还查两处写的是不是同一回事"""
+    print("\n=== 跨文件内容一致性 ===")
+    s1 = rd("10-基线/S-1-立项声明.md")
+    lg = rd("40-假设台账/假设台账.md")
+
+    def rows(txt, pref):
+        d = {}
+        for l in txt.splitlines():
+            if l.startswith("| **" + pref):
+                c = [x.strip() for x in l.split("|")[1:-1]]
+                d[c[0].replace("**", "")] = c
+        return d
+
+    a, b = rows(s1, "AS-"), rows(lg, "AS-")
+    if set(a) != set(b):
+        bad(f"假设集合不一致：S-1 {sorted(a)} / 台账 {sorted(b)}")
+    else:
+        ok(f"假设集合一致（{len(a)} 条）")
+    for k in sorted(set(a) & set(b)):
+        if _norm(a[k][2]) != _norm(b[k][3]):
+            bad(f"{k} 的「最晚验证时点」两处不一致：S-1「{a[k][2]}」/ 台账「{b[k][3]}」")
+    ok("假设「最晚验证时点」逐条一致（已去粗体/空白比较）")
+
+    # 预留清单项数（在两个文件里都应一致：S-1 §四 与 §8 槽位行）
+    m4 = re.search(r"预留\*\*（有接口[^）]*?\*\*(\d+) 项\*\*）\s*\|([^\n]*)", s1)
+    m8 = re.search(r"预留 (\d+) 项", s1)
+    if m4 and m8:
+        (ok if m4.group(1) == m8.group(1) else bad)(
+            f"预留项数：§四 声明 {m4.group(1)} / §8 槽位行写 {m8.group(1)}"
+        )
+
+    # 决策记录必须能查到当前版本
+    top = sorted(set(re.findall(r"v1\.\d", s1)), key=lambda x: int(x[3:]))[-1]
+    dec = rd("60-决策记录/决策记录.md")
+    (ok if top in dec else bad)(f"决策记录中可查到当前版本 {top}")
+
+
 def main():
     layers = sorted(
         p for p in glob.glob("10-基线/*.md") if os.path.basename(p) != "README.md"
@@ -138,6 +181,7 @@ def main():
         return 1
     for p in layers:
         check_layer(p)
+    check_cross_file()
 
     print(f"\n{'=' * 46}")
     print(f"共 {checks} 项检查，失败 {len(failures)} 项")
