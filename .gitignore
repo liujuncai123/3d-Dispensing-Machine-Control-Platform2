@@ -1,0 +1,38 @@
+# 构建产物（CMake / MSVC / Ninja）
+build/
+build-*/
+out/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CMakeUserPresets.json
+*.vcxproj
+*.vcxproj.*
+*.sln
+
+# 编译中间件与产物
+*.o
+*.obj
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.exp
+*.idb
+*.so
+*.dylib
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.user
+*.swp
+*~
+
+# 系统
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# 说明：本项目全部文档（*.md）与资料纳入版本控制，不受上述规则影响。
