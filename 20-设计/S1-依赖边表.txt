@@ -79,7 +79,7 @@ core/alarm  -> app/dashboard | B | pub | 决策17(报警→呈现)
 core/error  -> core/alarm    | B | pub | REQ-ERR-006(超阈值告警)
 core/device -> core/error    | B | pub | §17.5:状态变更触发偏差计算
 infra/config -> infra/eventbus | B | pub | §7.2.1④ 配置变更通知（经 eventbus 中转 —— config 不得认识业务类型）
-infra/eventbus -> core/device | B | sub | §7.2.1④ 订阅配置变更
+core/device -> infra/eventbus | B | sub | §7.2.1④ 订阅配置变更（订阅者注册到 eventbus，方向朝 eventbus）
 
 # ============ D 层 · 协议契约（不进 DAG） ============
 comm/interface -> apps/virtual-device | D | protocol | §14.2 E2(Modbus TCP 语义,下发)
