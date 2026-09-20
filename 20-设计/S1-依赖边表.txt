@@ -1,0 +1,73 @@
+# S1 依赖边表 —— 依赖图的唯一权威源
+# 格式： <使用者> -> <被使用者> | <A|B|D> | <类型> | <出处>
+# A=使用期依赖(进 DAG)  B=事件通道(不进 DAG)  D=协议契约(不进 DAG)
+# 建表日期 2026-09-20 ｜ 方法见 S1-#5依赖图方法-定稿.md
+# 候选来源：§五 数据所有权表(机械抽) + §17.5 数据流(人工推)；方向由人工按方法 §二 判定
+
+# ============ A 层 · 使用期依赖 ============
+app/main_window -> core/device        | A | usage | §五:设备状态(只读)
+app/main_window -> infra/config       | A | usage | §五:配置(构造注入读取)
+app/main_window -> qt                 | A | usage | 用户定(界面框架 Qt)
+app/scene3d     -> core/device        | A | usage | §五:设备状态(只读)
+app/scene3d     -> core/mapping       | A | usage | §五:坐标→几何映射参数(只读)
+app/scene3d     -> core/program       | A | usage | §五:程序/轨迹(只读)
+app/scene3d     -> vtk                | A | usage | P-006(3D 渲染用 VTK)
+app/scene3d     -> qt                 | A | usage | 用户定(界面框架 Qt)
+app/dashboard   -> core/device        | A | usage | §五:设备状态(只读)
+app/dashboard   -> core/alarm         | A | usage | §五:报警(只读)
+app/dashboard   -> core/stats         | A | usage | REQ-MON-002/004
+app/dashboard   -> data/store         | A | usage | REQ-MON-003(数据导出)
+app/dashboard   -> qt                 | A | usage | 用户定(界面框架 Qt)
+app/dialogs     -> core/execution     | A | usage | REQ-RUN-010(作业前点检确认)
+app/dialogs     -> core/device        | A | usage | REQ-DEV-005(批量下发二次确认)
+app/dialogs     -> qt                 | A | usage | 用户定(界面框架 Qt)
+
+core/device        -> core/statemachine | A | usage | REQ-STA-001(状态集合)
+core/device        -> infra/config      | A | usage | §五:配置(构造注入读取)
+core/execution     -> core/device       | A | usage | §五:设备清单/参数
+core/execution     -> core/program      | A | usage | §五:程序/轨迹
+core/execution     -> core/statemachine | A | usage | REQ-RUN-004(急停迁移)
+core/execution     -> core/concurrency  | A | usage | §17.5:下发投递
+core/execution     -> comm/interface    | A | usage | §17.5:下发经通信
+core/execution     -> infra/config      | A | usage | §五:配置(构造注入读取)
+core/execution     -> data/log          | A | usage | §五硬约束②(唯一写者,经接口)
+core/execution     -> data/store        | A | usage | REQ-DB-001
+core/concurrency   -> core/device       | A | usage | §五:设备状态(只投递不持有)
+core/concurrency   -> comm/interface    | A | usage | §17.5:状态汇聚
+core/concurrency   -> data/log          | A | usage | REQ-LOG-005(通信日志)
+core/error         -> core/device       | A | usage | §五:设备状态(归正读实际位置)
+core/error         -> core/vision       | A | usage | REQ-VIS-003(对位/测高结果进误差链路)
+core/error         -> infra/config      | A | usage | §五:配置(构造注入读取)
+core/error         -> data/log          | A | usage | REQ-LOG-007(误差日志)
+core/error         -> data/store        | A | usage | §五:记录(含误差日志)
+core/alarm         -> core/device       | A | usage | §五:设备状态
+core/alarm         -> core/error        | A | usage | §五:误差/修正量(只读)
+core/alarm         -> infra/config      | A | usage | §五:配置(构造注入读取)
+core/alarm         -> data/log          | A | usage | §五:报警(记录)
+core/stats         -> core/device       | A | usage | §五:设备状态
+core/program       -> core/execution    | A | usage | §五:工艺参数(点级覆盖,缺省回退程序级)
+core/program       -> infra/config      | A | usage | §五:配置(构造注入读取)
+core/vision        -> infra/config      | A | usage | §五:配置(构造注入读取)
+core/mapping       -> infra/config      | A | usage | §五:配置(构造注入读取)
+core/statemachine  -> infra/config      | A | usage | §五:配置(构造注入读取)
+
+comm/modbus -> comm/interface | A | usage | REQ-COM-002(对外语义 Modbus TCP)
+infra/lifecycle -> data/store | A | usage | §六:ARCH-007(快照/恢复点)
+
+# ============ B 层 · 事件通道（不进 DAG；须作为清单交 #6） ============
+core/device -> app/scene3d   | B | pub | 决策17(状态变更→3D 刷新)
+core/device -> app/dashboard | B | pub | 决策17(状态变更→总览)
+core/alarm  -> app/dashboard | B | pub | 决策17(报警→呈现)
+core/error  -> core/alarm    | B | pub | REQ-ERR-006(超阈值告警)
+infra/config -> core/device  | B | pub | §7.2.1④(配置变更通知)
+
+# ============ D 层 · 协议契约（不进 DAG） ============
+comm/interface -> apps/virtual-device | D | protocol | §14.2 E2(Modbus TCP 语义,下发)
+apps/virtual-device -> comm/interface | D | protocol | §14.2 E2(上报坐标/状态/误差/IO)
+app/main_window -> E1 | D | protocol | §14.2 E1(图形界面)
+data/store -> E4 | D | protocol | §14.2 E4(文件 API)
+data/log   -> E4 | D | protocol | §14.2 E4(文件 API)
+infra/config -> E4 | D | protocol | §14.2 E4(配置文件)
+data/log -> E5 | D | protocol | §14.2 E5(时间戳来源)
+infra/build -> E6 | D | protocol | §14.2 E6(构建环境)
+core/alarm -> E7 | D | protocol | REQ-ALM-002(第一次确认时关声光)
