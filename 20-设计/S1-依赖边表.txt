@@ -3,6 +3,15 @@
 # A=使用期依赖(进 DAG)  B=事件通道(不进 DAG)  D=协议契约(不进 DAG)
 # 建表日期 2026-09-20 ｜ 方法见 S1-#5依赖图方法-定稿.md
 # 候选来源：§五 数据所有权表(机械抽) + §17.5 数据流(人工推)；方向由人工按方法 §二 判定
+#
+# 【2026-09-20 用户裁决 · 两处】
+#  · 红1 真环 core/program ↔ core/execution —— 裁 A：
+#      core/program 只存"覆盖项"，不读基线；生效值计算归 core/execution
+#      ⇒ 删除 `core/program -> core/execution`，环断（只保留 execution -> program 单向）
+#  · 红2 禁边 infra/lifecycle -> data/store 违反「infra → 业务」—— 裁 A（改设计）：
+#      data/store 提供快照接口；infra/lifecycle 不直接写
+#      ⇒ 采【依赖倒置】：接口定义在 infra/lifecycle，data/store 实现它，装配点注入
+#      ⇒ 边改为 `data/store -> infra/lifecycle`（方向合法，且无环）
 
 # ============ A 层 · 使用期依赖 ============
 app/main_window -> core/device        | A | usage | §五:设备状态(只读)
@@ -45,14 +54,13 @@ core/alarm         -> core/error        | A | usage | §五:误差/修正量(只
 core/alarm         -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/alarm         -> data/log          | A | usage | §五:报警(记录)
 core/stats         -> core/device       | A | usage | §五:设备状态
-core/program       -> core/execution    | A | usage | §五:工艺参数(点级覆盖,缺省回退程序级)
 core/program       -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/vision        -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/mapping       -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/statemachine  -> infra/config      | A | usage | §五:配置(构造注入读取)
 
 comm/modbus -> comm/interface | A | usage | REQ-COM-002(对外语义 Modbus TCP)
-infra/lifecycle -> data/store | A | usage | §六:ARCH-007(快照/恢复点)
+data/store -> infra/lifecycle | A | usage | §六:ARCH-007 快照接口(依赖倒置：接口定义在 infra/lifecycle，data/store 实现，装配点注入)
 
 # ============ B 层 · 事件通道（不进 DAG；须作为清单交 #6） ============
 core/device -> app/scene3d   | B | pub | 决策17(状态变更→3D 刷新)
