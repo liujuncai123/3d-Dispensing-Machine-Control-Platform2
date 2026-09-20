@@ -77,7 +77,6 @@ data/store -> infra/lifecycle | A | usage | §六:ARCH-007 快照接口(依赖�
 main -> app/main_window       | A | usage | §7.2.1② 组合根：装配 UI 外壳（与 main→scene3d/dialogs 同性质）
 main -> app/dashboard         | A | usage | §7.2.1② 组合根：装配 UI 外壳
 app/main_window -> core/program | A | usage | §四:REQ-PRG-001/002（编程/校验的写触发）
-core/device -> core/alarm     | A | usage | REQ-ALM-003（通信失败属报警类型；掉线路径原缺路由）
 core/program -> data/log      | A | usage | §五硬约束②（程序变更留痕，经接口）
 app/dialogs -> data/log       | A | usage | REQ-LOG-001（操作日志）
 core/device -> data/log       | A | usage | REQ-LOG-002（事件日志）
@@ -89,6 +88,7 @@ core/device -> app/scene3d   | B | pub | 决策17(状态变更→3D 刷新)
 core/device -> app/dashboard | B | pub | 决策17(状态变更→总览)
 core/alarm  -> app/dashboard | B | pub | 决策17(报警→呈现)
 core/error  -> core/alarm    | B | pub | REQ-ERR-006(超阈值告警)
+core/device -> core/alarm    | B | pub | REQ-ALM-003(通信失败/掉线→报警) —— 与 error→alarm 同模式：报警触发是【事件】非静态依赖
 core/device -> core/error    | B | pub | §17.5:状态变更触发偏差计算
 infra/config -> infra/eventbus | B | pub | §7.2.1④ 配置变更通知（经 eventbus 中转 —— config 不得认识业务类型）
 core/device -> infra/eventbus | B | sub | §7.2.1④ 订阅配置变更（订阅者注册到 eventbus，方向朝 eventbus）
