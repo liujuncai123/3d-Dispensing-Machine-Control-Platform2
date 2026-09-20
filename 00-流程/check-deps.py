@@ -26,12 +26,15 @@ def is_infra_like(n):  return n.startswith('infra/')
 def is_comm(n):        return n.startswith('comm/')
 def is_business(n):    return n.startswith(('app/','core/','data/')) or n == 'apps/virtual-device'
 
-def forbidden(a, b):
-    """返回禁边理由，或 None"""
+def forbidden(a, b, layer):
+    """返回禁边理由，或 None。【按层区分】—— B 层 `core → app` 合法（事件就是向上通知）"""
+    # 所有层都禁：infra 认识业务 / 虚拟下位机反向依赖
+    if is_infra_like(a) and is_business(b):           return 'infra → 业务（§7.2.1②）'
+    if a == 'apps/virtual-device' and b in MODULES and not b.startswith('comm/'):
+        return '虚拟下位机 → 上位机模块（§14.2 E2）'
+    if layer != 'A': return None   # ↓ 以下仅 A 层（静态依赖）适用
     if a.startswith('core/') and b.startswith('app/'):                return 'core → app（§17.1 主干③④⑤）'
     if is_comm(a) and is_business(b):                                 return 'comm → 业务（§17.1 主干④）'
-    if is_infra_like(a) and is_business(b):                           return 'infra → 业务（§7.2.1②）'
-    if a == 'apps/virtual-device' and b in MODULES:                   return '虚拟下位机 → 上位机模块（§14.2 E2）'
     if a.startswith(('core/','comm/','data/')) and b in ('qt','vtk'): return '核心/通信/数据 → 第三方库（模块划分轮 32）'
     return None
 
@@ -60,8 +63,7 @@ def main():
 
     # ② 禁边
     for a, b, layer, kind, src, ln in edges:
-        if layer != 'A': continue
-        why = forbidden(a, b)
+        why = forbidden(a, b, layer)
         if why: fails.append('[② 禁边] 第 %d 行 `%s -> %s` 违反：%s' % (ln, a, b, why))
 
     # ① A 层无环

@@ -8,6 +8,14 @@
 #  · 红1 真环 core/program ↔ core/execution —— 裁 A：
 #      core/program 只存"覆盖项"，不读基线；生效值计算归 core/execution
 #      ⇒ 删除 `core/program -> core/execution`，环断（只保留 execution -> program 单向）
+# 【2026-09-20 交付评审（rev-deps-a/b）后修正】
+#  · D 级 #50 `infra/config -> core/device`(B) 违反「infra → 业务」且复活 §7.2.1② 已断的环
+#      ⇒ 拆为 `infra/config -> infra/eventbus`(pub) + `infra/eventbus -> core/device`(sub)
+#      ⇒ 结论：配置变更通知必须经 eventbus 中转，config 永不认识业务类型
+#  · C 级 #22/#23（core/execution -> concurrency / comm/interface）出处失真：
+#      §17.5 该两跳实为 device→concurrency、concurrency→comm/interface（execution 全链不出现）⇒ 已删
+#  · 补漏边：device→concurrency · device→eventbus · device→error(事件) · dashboard→comm/interface · alarm→execution
+#
 #  · 红2 禁边 infra/lifecycle -> data/store 违反「infra → 业务」—— 裁 A（改设计）：
 #      data/store 提供快照接口；infra/lifecycle 不直接写
 #      ⇒ 采【依赖倒置】：接口定义在 infra/lifecycle，data/store 实现它，装配点注入
@@ -29,6 +37,7 @@ app/dashboard   -> data/store         | A | usage | REQ-MON-003(数据导出)
 app/dashboard   -> qt                 | A | usage | 用户定(界面框架 Qt)
 app/dialogs     -> core/execution     | A | usage | REQ-RUN-010(作业前点检确认)
 app/dialogs     -> core/device        | A | usage | REQ-DEV-005(批量下发二次确认)
+app/dashboard   -> comm/interface     | A | usage | REQ-COM-003(连接状态可见)
 app/dialogs     -> qt                 | A | usage | 用户定(界面框架 Qt)
 
 core/device        -> core/statemachine | A | usage | REQ-STA-001(状态集合)
@@ -36,12 +45,12 @@ core/device        -> infra/config      | A | usage | §五:配置(构造注入�
 core/execution     -> core/device       | A | usage | §五:设备清单/参数
 core/execution     -> core/program      | A | usage | §五:程序/轨迹
 core/execution     -> core/statemachine | A | usage | REQ-RUN-004(急停迁移)
-core/execution     -> core/concurrency  | A | usage | §17.5:下发投递
-core/execution     -> comm/interface    | A | usage | §17.5:下发经通信
 core/execution     -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/execution     -> data/log          | A | usage | §五硬约束②(唯一写者,经接口)
 core/execution     -> data/store        | A | usage | REQ-DB-001
 core/concurrency   -> core/device       | A | usage | §五:设备状态(只投递不持有)
+core/device        -> core/concurrency  | A | usage | §17.5:下发投递(第一跳)
+core/device        -> infra/eventbus    | A | usage | §17.5:唯一事实源→事件
 core/concurrency   -> comm/interface    | A | usage | §17.5:状态汇聚
 core/concurrency   -> data/log          | A | usage | REQ-LOG-005(通信日志)
 core/error         -> core/device       | A | usage | §五:设备状态(归正读实际位置)
@@ -50,6 +59,7 @@ core/error         -> infra/config      | A | usage | §五:配置(构造注入�
 core/error         -> data/log          | A | usage | REQ-LOG-007(误差日志)
 core/error         -> data/store        | A | usage | §五:记录(含误差日志)
 core/alarm         -> core/device       | A | usage | §五:设备状态
+core/alarm         -> core/execution    | A | usage | REQ-ALM-004(严重报警触发停机)
 core/alarm         -> core/error        | A | usage | §五:误差/修正量(只读)
 core/alarm         -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/alarm         -> data/log          | A | usage | §五:报警(记录)
@@ -67,7 +77,9 @@ core/device -> app/scene3d   | B | pub | 决策17(状态变更→3D 刷新)
 core/device -> app/dashboard | B | pub | 决策17(状态变更→总览)
 core/alarm  -> app/dashboard | B | pub | 决策17(报警→呈现)
 core/error  -> core/alarm    | B | pub | REQ-ERR-006(超阈值告警)
-infra/config -> core/device  | B | pub | §7.2.1④(配置变更通知)
+core/device -> core/error    | B | pub | §17.5:状态变更触发偏差计算
+infra/config -> infra/eventbus | B | pub | §7.2.1④ 配置变更通知（经 eventbus 中转 —— config 不得认识业务类型）
+infra/eventbus -> core/device | B | sub | §7.2.1④ 订阅配置变更
 
 # ============ D 层 · 协议契约（不进 DAG） ============
 comm/interface -> apps/virtual-device | D | protocol | §14.2 E2(Modbus TCP 语义,下发)
