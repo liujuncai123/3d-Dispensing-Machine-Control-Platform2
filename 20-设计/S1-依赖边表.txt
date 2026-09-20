@@ -82,6 +82,8 @@ app/dialogs -> data/log       | A | usage | REQ-LOG-001（操作日志）
 core/device -> data/log       | A | usage | REQ-LOG-002（事件日志）
 core/statemachine -> data/log | A | usage | REQ-LOG-002（状态迁移事件）
 core/stats -> data/store      | A | usage | REQ-MON-002（产量统计需持久化）
+app/dashboard -> data/log     | A | usage | REQ-LOG-004（日志可按条件查询）
+core/device -> data/store     | A | usage | REQ-DEV-007（每台设备参数独立且随设备持久化）
 
 # ============ B 层 · 事件通道（不进 DAG；须作为清单交 #6） ============
 core/device -> app/scene3d   | B | pub | 决策17(状态变更→3D 刷新)
