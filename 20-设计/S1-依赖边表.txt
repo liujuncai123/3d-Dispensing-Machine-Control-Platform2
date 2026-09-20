@@ -66,7 +66,7 @@ core/error         -> core/vision       | A | usage | REQ-VIS-003(对位/测高�
 core/error         -> data/log          | A | usage | REQ-LOG-007(误差日志)
 core/error         -> data/store        | A | usage | §五:记录(含误差日志)
 core/alarm         -> core/device       | A | usage | §五:设备状态
-core/alarm         -> core/execution    | A | usage | REQ-ALM-004(严重报警触发停机)
+core/alarm         -> core/execution    | A | usage | REQ-ALM-004 严重报警触发停机 ——【同步停机命令，非事件】安全链走同步调用（P-5 安全优先）
 core/alarm         -> core/error        | A | usage | §五:误差/修正量(只读)
 core/alarm         -> data/log          | A | usage | §五:报警(记录)
 core/stats         -> core/device       | A | usage | §五:设备状态
@@ -92,8 +92,7 @@ core/alarm  -> app/dashboard | B | pub | 决策17(报警→呈现)
 core/error  -> core/alarm    | B | pub | REQ-ERR-006(超阈值告警)
 core/device -> core/alarm    | B | pub | REQ-ALM-003(通信失败/掉线→报警) —— 与 error→alarm 同模式：报警触发是【事件】非静态依赖
 core/device -> core/error    | B | pub | §17.5:状态变更触发偏差计算
-infra/config -> infra/eventbus | B | pub | §7.2.1④ 配置变更通知（经 eventbus 中转 —— config 不得认识业务类型）
-core/device -> infra/eventbus | B | sub | §7.2.1④ 订阅配置变更（订阅者注册到 eventbus，方向朝 eventbus）
+infra/config -> infra/eventbus | A | usage | §7.2.1④ 广播配置变更（经 eventbus 中转 —— config 不得认识业务类型）
 
 # ============ D 层 · 协议契约（不进 DAG） ============
 comm/interface -> apps/virtual-device | D | protocol | §14.2 E2(Modbus TCP 语义,下发)
