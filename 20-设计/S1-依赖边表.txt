@@ -59,7 +59,7 @@ core/execution     -> data/store        | A | usage | REQ-DB-001
 core/concurrency   -> core/device       | A | usage | §五:设备状态(只投递不持有)
 core/device        -> core/concurrency  | A | usage | §17.5:下发投递(第一跳)
 core/device        -> infra/eventbus    | A | usage | §17.5:唯一事实源→事件
-core/concurrency   -> comm/interface    | A | usage | §17.5:状态汇聚
+core/concurrency   -> comm/interface    | A | usage | §17.5:下发投递(第二跳)
 core/concurrency   -> data/log          | A | usage | REQ-LOG-005(通信日志)
 core/error         -> core/device       | A | usage | §五:设备状态(归正读实际位置)
 core/error         -> core/vision       | A | usage | REQ-VIS-003(对位/测高结果进误差链路)
