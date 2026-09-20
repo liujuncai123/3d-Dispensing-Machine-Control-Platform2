@@ -78,8 +78,9 @@ def check_layer(path):
 
     for m in re.finditer(r"^\| \*\*§(\d) ", s, re.M):
         pass
-    n_slot = len(re.findall(r"\| \*\*§[1-8] ", s))
-    (ok if n_slot == 8 else bad)(f"槽位表行数 = {n_slot}（应为 8）")
+    if "槽位" in s:   # 仅 S-1 这类含槽位表的层检查；S0/S1 无槽位概念
+        n_slot = len(re.findall(r"\| \*\*§[1-8] ", s))
+        (ok if n_slot == 8 else bad)(f"槽位表行数 = {n_slot}（应为 8）")
 
     # ---- 2. 引用可达性：文件 ----
     paths = sorted(set(re.findall(r"`\.\./([^`]+?\.md)`", s)))
@@ -89,7 +90,7 @@ def check_layer(path):
 
     # ---- 3. 引用可达性：编号 ----
     homes = {
-        "B-": rd("30-待裁决/待裁决队列.md"),
+        "B-": rd("30-待裁决/待裁决队列.md") + rd("60-决策记录/决策记录.md"),
         "AS-": rd("40-假设台账/假设台账.md"),
         "CR-": rd("50-变更单/变更单索引.md")
         + "".join(rd(f) for f in glob.glob("50-变更单/CR-*.md")),
@@ -107,7 +108,8 @@ def check_layer(path):
     # ---- 4. 空依据栏（3 列以上表格的最后一句为 — 或空）----
     empt = []
     for i, l in enumerate(s.splitlines(), 1):
-        if not l.startswith("|"):
+        # 只查「需求条目行」（首格是 `REQ-xxx`）—— 裁决记录/文件清单等表不适用本条
+        if not re.match(r"^\|\s*`REQ-", l):
             continue
         c = [x.strip() for x in l.split("|")[1:-1]]
         if len(c) >= 3 and c[-1] in ("—", ""):
