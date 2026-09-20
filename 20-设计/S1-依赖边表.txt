@@ -73,6 +73,16 @@ core/stats         -> core/device       | A | usage | §五:设备状态
 
 comm/modbus -> comm/interface | A | usage | REQ-COM-002(对外语义 Modbus TCP)
 data/store -> infra/lifecycle | A | usage | §六:ARCH-007 快照接口(依赖倒置：接口定义在 infra/lifecycle，data/store 实现，装配点注入)
+# 【2026-09-21 双向核对·正向查漏 补边 9 条（dep-audit-forward：78 跳中 74 命中 ⇒ 漏 9）】
+main -> app/main_window       | A | usage | §7.2.1② 组合根：装配 UI 外壳（与 main→scene3d/dialogs 同性质）
+main -> app/dashboard         | A | usage | §7.2.1② 组合根：装配 UI 外壳
+app/main_window -> core/program | A | usage | §四:REQ-PRG-001/002（编程/校验的写触发）
+core/device -> core/alarm     | A | usage | REQ-ALM-003（通信失败属报警类型；掉线路径原缺路由）
+core/program -> data/log      | A | usage | §五硬约束②（程序变更留痕，经接口）
+app/dialogs -> data/log       | A | usage | REQ-LOG-001（操作日志）
+core/device -> data/log       | A | usage | REQ-LOG-002（事件日志）
+core/statemachine -> data/log | A | usage | REQ-LOG-002（状态迁移事件）
+core/stats -> data/store      | A | usage | REQ-MON-002（产量统计需持久化）
 
 # ============ B 层 · 事件通道（不进 DAG；须作为清单交 #6） ============
 core/device -> app/scene3d   | B | pub | 决策17(状态变更→3D 刷新)
