@@ -10,7 +10,8 @@
 #      ⇒ 删除 `core/program -> core/execution`，环断（只保留 execution -> program 单向）
 # 【2026-09-20 交付评审（rev-deps-a/b）后修正】
 #  · D 级 #50 `infra/config -> core/device`(B) 违反「infra → 业务」且复活 §7.2.1② 已断的环
-#      ⇒ 拆为 `infra/config -> infra/eventbus`(pub) + `infra/eventbus -> core/device`(sub)
+#      ⇒ 拆为 `infra/config -> infra/eventbus`(A usage，广播) —— ⚠️ 原写"拆成两条"，
+#         但按 §三 约定 `X -> infra/eventbus` 一律记 A、事件流向记 B ⇒ 实际只保留 A 那条（2026-09-21 更正）
 #      ⇒ 结论：配置变更通知必须经 eventbus 中转，config 永不认识业务类型
 #  · C 级 #22/#23（core/execution -> concurrency / comm/interface）出处失真：
 #      §17.5 该两跳实为 device→concurrency、concurrency→comm/interface（execution 全链不出现）⇒ 已删
@@ -59,6 +60,11 @@ core/execution     -> data/store        | A | usage | REQ-DB-001
 core/concurrency   -> core/device       | A | usage | §五:设备状态(只投递不持有)
 core/device        -> core/concurrency  | A | usage | §17.5:下发投递(第一跳)
 core/device        -> infra/eventbus    | A | usage | §17.5:唯一事实源→事件
+# 【2026-09-21 补】事件订阅者必须有 eventbus 注入边（§三 约定：X→infra/eventbus 永远记 A；§八 约束2 构造注入）
+app/scene3d     -> infra/eventbus    | A | usage | 决策17 + §八约束2（订阅状态变更，构造注入）
+app/dashboard   -> infra/eventbus    | A | usage | 决策17 + §八约束2（订阅状态/报警，构造注入）
+core/alarm      -> infra/eventbus    | A | usage | 决策17 + §八约束2（发布报警，构造注入）
+core/error      -> infra/eventbus    | A | usage | 决策17 + §八约束2（发布超阈值事件，构造注入）
 core/concurrency   -> comm/interface    | A | usage | §17.5:下发投递(第二跳)
 core/concurrency   -> data/log          | A | usage | REQ-LOG-005(通信日志)
 core/error         -> core/device       | A | usage | §五:设备状态(归正读实际位置)
