@@ -23,7 +23,9 @@ NODES = MODULES | EXTERNAL
 ALLOWED_CYCLES = {
  # 依法 §六：每条必须带理由，且经用户裁决
  ('core/concurrency','core/device'):
-   '§五 硬约束①：core/concurrency 只投递、不持有 ⇒ 该 2-环是「每设备一线程 + 唯一事实源」的必然形状，机制保证不死锁（2026-09-20 用户裁 A）',
+   '§五 硬约束①：core/concurrency 只投递、不持有（enqueue，非同步调用）⇒ 该 2-环是「每设备一线程 + 唯一事实源」的必然形状（2026-09-20 用户裁 A）。'
+   '⚠️ 该豁免的安全性依赖「SPSC 无锁」这一机制，而本脚本**不校验机制** ⇒ 若实现层在环两侧加互斥锁，将真死锁而本脚本不报警。'
+   '   ⇒ 机制验证挂 #6 运行时视图（2026-09-21 loop2-b CT-2）。',
 }
 
 def is_infra_like(n):  return n.startswith('infra/')

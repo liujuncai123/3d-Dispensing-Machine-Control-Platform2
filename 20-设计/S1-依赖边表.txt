@@ -60,8 +60,8 @@ core/execution     -> core/program      | A | usage | §五:程序/轨迹
 core/execution     -> core/statemachine | A | usage | REQ-RUN-004(急停迁移)
 core/execution     -> data/log          | A | usage | §五硬约束②(唯一写者,经接口)
 core/execution     -> data/store        | A | usage | REQ-DB-001
-core/concurrency   -> core/device       | A | usage | §五:设备状态(只投递不持有)
-core/device        -> core/concurrency  | A | usage | §17.5:下发投递(第一跳)
+core/concurrency   -> core/device       | A | usage | §五:设备状态(只投递不持有) ——【**投递 enqueue，非同步调用**】
+core/device        -> core/concurrency  | A | usage | §17.5:下发投递(第一跳) ——【**投递 enqueue，非同步调用**】
 core/device        -> infra/eventbus    | A | usage | §17.5:唯一事实源→事件
 # 【2026-09-21 补】事件订阅者必须有 eventbus 注入边（§三 约定：X→infra/eventbus 永远记 A；§八 约束2 构造注入）
 app/scene3d     -> infra/eventbus    | A | usage | 决策17 + §八约束2（订阅状态变更，构造注入）
