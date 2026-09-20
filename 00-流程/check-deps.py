@@ -16,11 +16,15 @@ MODULES = {
  'comm/interface','comm/modbus','data/store','data/log',
  'infra/build','infra/config','infra/eventbus','infra/lifecycle','infra/telemetry',
  'apps/virtual-device'}
-EXTERNAL = {'E1','E2','E3','E4','E5','E6','E7','qt','vtk'}
+EXTERNAL = {'E1','E2','E3','E4','E5','E6','E7','qt','vtk','main'}   # main = 装配点/组合根（不是模块）
 NODES = MODULES | EXTERNAL
 
 # 🔴 环豁免：每条必须带理由。空字典是默认值 —— 禁止为了让脚本变绿而往里加东西。
-ALLOWED_CYCLES = {}
+ALLOWED_CYCLES = {
+ # 依法 §六：每条必须带理由，且经用户裁决
+ ('core/concurrency','core/device'):
+   '§五 硬约束①：core/concurrency 只投递、不持有 ⇒ 该 2-环是「每设备一线程 + 唯一事实源」的必然形状，机制保证不死锁（2026-09-20 用户裁 A）',
+}
 
 def is_infra_like(n):  return n.startswith('infra/')
 def is_comm(n):        return n.startswith('comm/')
@@ -93,7 +97,7 @@ def main():
         if key not in [frozenset(x) for x in uniq]: uniq.append(c)
     truth = []
     for c in uniq:
-        key = tuple(sorted(c))
+        key = tuple(sorted(set(c)))
         if key in ALLOWED_CYCLES: continue
         truth.append(c)
     for c in truth:

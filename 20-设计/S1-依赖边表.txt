@@ -22,8 +22,18 @@
 #      ⇒ 边改为 `data/store -> infra/lifecycle`（方向合法，且无环）
 
 # ============ A 层 · 使用期依赖 ============
+# 【装配点（组合根）】依 2026-09-20 裁 B：模块不依赖 infra/config；由组合根加载+注入
+main -> infra/config       | A | usage | §7.2.1② 组合根：加载 + 校验
+main -> core/device        | A | usage | §7.2.1② 组合根：注入配置结构体（§七 读取方）
+main -> core/execution     | A | usage | §7.2.1② 组合根：注入（§七 读取方）
+main -> core/concurrency   | A | usage | §7.2.1② 组合根：注入（§七 读取方）
+main -> core/alarm         | A | usage | §7.2.1② 组合根：注入（§七 读取方）
+main -> core/error         | A | usage | §7.2.1② 组合根：注入（§七 读取方）
+main -> app/scene3d        | A | usage | §7.2.1② 组合根：注入（§七 读取方）
+main -> app/dialogs        | A | usage | §7.2.1② 组合根：注入（§七 读取方）
+main -> comm/interface     | A | usage | §7.2.1② 组合根：注入（§七 读取方）
+main -> data/log           | A | usage | §7.2.1② 组合根：注入（§七 读取方）
 app/main_window -> core/device        | A | usage | §五:设备状态(只读)
-app/main_window -> infra/config       | A | usage | §五:配置(构造注入读取)
 app/main_window -> qt                 | A | usage | 用户定(界面框架 Qt)
 app/scene3d     -> core/device        | A | usage | §五:设备状态(只读)
 app/scene3d     -> core/mapping       | A | usage | §五:坐标→几何映射参数(只读)
@@ -41,11 +51,9 @@ app/dashboard   -> comm/interface     | A | usage | REQ-COM-003(连接状态可�
 app/dialogs     -> qt                 | A | usage | 用户定(界面框架 Qt)
 
 core/device        -> core/statemachine | A | usage | REQ-STA-001(状态集合)
-core/device        -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/execution     -> core/device       | A | usage | §五:设备清单/参数
 core/execution     -> core/program      | A | usage | §五:程序/轨迹
 core/execution     -> core/statemachine | A | usage | REQ-RUN-004(急停迁移)
-core/execution     -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/execution     -> data/log          | A | usage | §五硬约束②(唯一写者,经接口)
 core/execution     -> data/store        | A | usage | REQ-DB-001
 core/concurrency   -> core/device       | A | usage | §五:设备状态(只投递不持有)
@@ -55,19 +63,13 @@ core/concurrency   -> comm/interface    | A | usage | §17.5:状态汇聚
 core/concurrency   -> data/log          | A | usage | REQ-LOG-005(通信日志)
 core/error         -> core/device       | A | usage | §五:设备状态(归正读实际位置)
 core/error         -> core/vision       | A | usage | REQ-VIS-003(对位/测高结果进误差链路)
-core/error         -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/error         -> data/log          | A | usage | REQ-LOG-007(误差日志)
 core/error         -> data/store        | A | usage | §五:记录(含误差日志)
 core/alarm         -> core/device       | A | usage | §五:设备状态
 core/alarm         -> core/execution    | A | usage | REQ-ALM-004(严重报警触发停机)
 core/alarm         -> core/error        | A | usage | §五:误差/修正量(只读)
-core/alarm         -> infra/config      | A | usage | §五:配置(构造注入读取)
 core/alarm         -> data/log          | A | usage | §五:报警(记录)
 core/stats         -> core/device       | A | usage | §五:设备状态
-core/program       -> infra/config      | A | usage | §五:配置(构造注入读取)
-core/vision        -> infra/config      | A | usage | §五:配置(构造注入读取)
-core/mapping       -> infra/config      | A | usage | §五:配置(构造注入读取)
-core/statemachine  -> infra/config      | A | usage | §五:配置(构造注入读取)
 
 comm/modbus -> comm/interface | A | usage | REQ-COM-002(对外语义 Modbus TCP)
 data/store -> infra/lifecycle | A | usage | §六:ARCH-007 快照接口(依赖倒置：接口定义在 infra/lifecycle，data/store 实现，装配点注入)
