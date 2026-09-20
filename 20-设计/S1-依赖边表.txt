@@ -38,21 +38,21 @@ main -> app/dialogs        | A | usage | §7.2.1② 组合根：注入（§七 �
 main -> comm/interface     | A | usage | §7.2.1② 组合根：注入（§七 读取方）
 main -> data/log           | A | usage | §7.2.1② 组合根：注入（§七 读取方）
 app/main_window -> core/device        | A | usage | §五:设备状态(只读)
-app/main_window -> qt                 | A | usage | 用户定(界面框架 Qt)
+app/main_window -> qt                 | A | usage | S-1 附录B 技术栈（Qt 界面）
 app/scene3d     -> core/device        | A | usage | §五:设备状态(只读)
 app/scene3d     -> core/mapping       | A | usage | §五:坐标→几何映射参数(只读)
 app/scene3d     -> core/program       | A | usage | §五:程序/轨迹(只读)
 app/scene3d     -> vtk                | A | usage | P-006(3D 渲染用 VTK)
-app/scene3d     -> qt                 | A | usage | 用户定(界面框架 Qt)
+app/scene3d     -> qt                 | A | usage | S-1 附录B 技术栈（Qt 界面）
 app/dashboard   -> core/device        | A | usage | §五:设备状态(只读)
 app/dashboard   -> core/alarm         | A | usage | §五:报警(只读)
 app/dashboard   -> core/stats         | A | usage | REQ-MON-002/004
 app/dashboard   -> data/store         | A | usage | REQ-MON-003(数据导出)
-app/dashboard   -> qt                 | A | usage | 用户定(界面框架 Qt)
+app/dashboard   -> qt                 | A | usage | S-1 附录B 技术栈（Qt 界面）
 app/dialogs     -> core/execution     | A | usage | REQ-RUN-010(作业前点检确认)
 app/dialogs     -> core/device        | A | usage | REQ-DEV-005(批量下发二次确认)
 app/dashboard   -> comm/interface     | A | usage | REQ-COM-003(连接状态可见)
-app/dialogs     -> qt                 | A | usage | 用户定(界面框架 Qt)
+app/dialogs     -> qt                 | A | usage | S-1 附录B 技术栈（Qt 界面）
 
 core/device        -> core/statemachine | A | usage | REQ-STA-001(状态集合)
 core/execution     -> core/device       | A | usage | §五:设备清单/参数
@@ -82,6 +82,7 @@ core/stats         -> core/device       | A | usage | §五:设备状态
 
 comm/modbus -> comm/interface | A | usage | REQ-COM-002(对外语义 Modbus TCP)
 data/store -> infra/lifecycle | A | usage | §六:ARCH-007 快照接口(依赖倒置：接口定义在 infra/lifecycle，data/store 实现，装配点注入)
+infra/config -> infra/eventbus | A | usage | §7.2.1④ 广播配置变更（经 eventbus 中转 —— config 不得认识业务类型）
 # 【2026-09-21 双向核对·正向查漏 补边 9 条（dep-audit-forward：78 跳中 74 命中 ⇒ 漏 9）】
 main -> app/main_window       | A | usage | §7.2.1② 组合根：装配 UI 外壳（与 main→scene3d/dialogs 同性质）
 main -> app/dashboard         | A | usage | §7.2.1② 组合根：装配 UI 外壳
@@ -101,7 +102,6 @@ core/alarm  -> app/dashboard | B | pub | 决策17(报警→呈现)
 core/error  -> core/alarm    | B | pub | REQ-ERR-006(超阈值告警)
 core/device -> core/alarm    | B | pub | REQ-ALM-003(通信失败/掉线→报警) —— 与 error→alarm 同模式：报警触发是【事件】非静态依赖
 core/device -> core/error    | B | pub | §17.5:状态变更触发偏差计算
-infra/config -> infra/eventbus | A | usage | §7.2.1④ 广播配置变更（经 eventbus 中转 —— config 不得认识业务类型）
 
 # ============ D 层 · 协议契约（不进 DAG） ============
 comm/interface -> apps/virtual-device | D | protocol | §14.2 E2(Modbus TCP 语义,下发)
