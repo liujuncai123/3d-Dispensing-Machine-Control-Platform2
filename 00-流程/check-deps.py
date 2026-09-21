@@ -10,7 +10,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EDGES = os.path.join(ROOT, '20-设计', 'S1-依赖边表.txt')
 
 MODULES = {
- 'app/main_window','app/scene3d','app/dashboard','app/dialogs',
+ 'app/main_window','app/scene3d','app/dashboard','app/dialogs','app/replay',
  'core/program','core/execution','core/statemachine','core/device','core/concurrency',
  'core/alarm','core/stats','core/error','core/vision','core/mapping',
  'comm/interface','comm/modbus','data/store','data/log',
@@ -61,7 +61,7 @@ def main():
     for a, b, layer, kind, src, ln in edges:
         for n in (a, b):
             if n not in NODES:
-                fails.append('[③ 端点] 第 %d 行端点 `%s` 不在 24 模块 ∪ {E1~E7,qt,vtk} 内' % (ln, n))
+                fails.append('[③ 端点] 第 %d 行端点 `%s` 不在 %d 模块 ∪ {E1~E7,qt,vtk} 内' % (ln, n, len(MODULES)))
     # ④ 出处非空（正则已保证非空，这里查禁用行号）
     for a, b, layer, kind, src, ln in edges:
         if re.search(r'L\d{2,}|:\d+$|行\s*\d+', src):
