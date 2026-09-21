@@ -64,14 +64,14 @@ def check_layer(path):
 
     for m in re.finditer(r"不做\*\*（明确排除[^）]*?\*\*(\d+) 项\*\*）\s*\|([^\n]*)", s):
         declared = int(m.group(1))
-        actual = len(re.findall(r"[①②③④⑤⑥⑦⑧⑨]", m.group(2)))
+        actual = len(re.findall(r"[①②③④⑤⑥⑦⑧⑨⑩]", m.group(2)))
         (ok if declared == actual else bad)(
             f"§四 不做：声明 {declared} 项 / 实际列出 {actual} 项"
         )
 
     for m in re.finditer(r"预留\*\*（有接口[^）]*?\*\*(\d+) 项\*\*）\s*\|([^\n]*)", s):
         declared = int(m.group(1))
-        actual = len(re.findall(r"[①②③④⑤⑥⑦⑧⑨]", m.group(2)))
+        actual = len(re.findall(r"[①②③④⑤⑥⑦⑧⑨⑩]", m.group(2)))
         (ok if declared == actual else bad)(
             f"§四 预留：声明 {declared} 项 / 实际列出 {actual} 项"
         )
